@@ -269,6 +269,7 @@ void CentralWidget::on_lightThemeAction_triggered()
     if(themeColorEnable) QGoodWindow::setAppCustomTheme(isDarkTheme,themeColor);
     QFontIcon::instance()->setColor(Qt::black);
     term->setColorScheme("QuardCRT Light");
+    statusBarWidget->retranslateUi();
 }
 
 void CentralWidget::on_darkThemeAction_triggered()
@@ -279,6 +280,7 @@ void CentralWidget::on_darkThemeAction_triggered()
     if(themeColorEnable) QGoodWindow::setAppCustomTheme(isDarkTheme,themeColor);
     QFontIcon::instance()->setColor(Qt::white);
     term->setColorScheme("QuardCRT");
+    statusBarWidget->retranslateUi();
 }
 
 void CentralWidget::on_themeColorAction_triggered()

@@ -44,7 +44,8 @@ StatusBarWidget::~StatusBarWidget() {
 }
 
 void StatusBarWidget::setNotifiction(bool enable) {
-    if(enable) {
+    m_notifiction = enable;
+    if(m_notifiction) {
         statusBarNotifiction->setIcon(QFontIcon::icon(QChar(0xf0f3)));
     } else {
         statusBarNotifiction->setIcon(QFontIcon::icon(QChar(0xf0a2)));
@@ -53,4 +54,11 @@ void StatusBarWidget::setNotifiction(bool enable) {
 
 void StatusBarWidget::contextMenuEvent(QContextMenuEvent *event) {
     Q_UNUSED(event);
+}
+
+void StatusBarWidget::retranslateUi()
+{
+    setNotifiction(m_notifiction);
+
+    ui->retranslateUi(this);
 }
