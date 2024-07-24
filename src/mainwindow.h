@@ -7,6 +7,7 @@
 #include <QWidget>
 #include <QPushButton>
 #include <QHBoxLayout>
+#include <QColor>
 
 #include "qtermwidget.h"
 #include "ptyqt.h"
@@ -26,12 +27,17 @@ class CentralWidget : public QMainWindow
     Q_OBJECT
 
 public:
-    CentralWidget(QWidget *parent = nullptr);
+    CentralWidget(bool isDark = true, QWidget *parent = nullptr);
     ~CentralWidget();
     void checkCloseEvent(QCloseEvent *event);
 
 protected:
     void contextMenuEvent(QContextMenuEvent *event);
+
+private slots:
+    void on_lightThemeAction_triggered();
+    void on_darkThemeAction_triggered();
+    void on_themeColorAction_triggered();
 
 private:
     Ui::CentralWidget *ui;
@@ -43,6 +49,9 @@ private:
     QPushButton *sidePushButton;
     QHBoxLayout *sideHboxLayout;
     NotifictionWidget *notifictionWidget;
+    bool isDarkTheme;
+    QColor themeColor;
+    bool themeColorEnable = false;
 };  
 
 

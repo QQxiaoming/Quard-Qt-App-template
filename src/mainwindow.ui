@@ -15,6 +15,21 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <property name="spacing">
+     <number>1</number>
+    </property>
+    <property name="leftMargin">
+     <number>1</number>
+    </property>
+    <property name="topMargin">
+     <number>1</number>
+    </property>
+    <property name="rightMargin">
+     <number>1</number>
+    </property>
+    <property name="bottomMargin">
+     <number>1</number>
+    </property>
     <item>
      <widget class="QWidget" name="sidewidget" native="true">
       <property name="sizePolicy">
@@ -76,6 +91,9 @@
       <property name="handleWidth">
        <number>1</number>
       </property>
+      <property name="childrenCollapsible">
+       <bool>false</bool>
+      </property>
       <widget class="QLabel" name="labelSide">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -131,24 +149,34 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>36</height>
+     <height>30</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menu">
+   <widget class="QMenu" name="menuOptions">
     <property name="title">
      <string>设置</string>
     </property>
     <addaction name="actionroop"/>
    </widget>
-   <widget class="QMenu" name="menu_2">
+   <widget class="QMenu" name="menuTheme">
+    <property name="title">
+     <string>主题</string>
+    </property>
+    <addaction name="lightThemeAction"/>
+    <addaction name="darkThemeAction"/>
+    <addaction name="separator"/>
+    <addaction name="themeColorAction"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
     <property name="title">
      <string>帮助</string>
     </property>
     <addaction name="actionhelp"/>
     <addaction name="actionabout"/>
    </widget>
-   <addaction name="menu"/>
-   <addaction name="menu_2"/>
+   <addaction name="menuOptions"/>
+   <addaction name="menuTheme"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionroop">
@@ -164,6 +192,21 @@
   <action name="actionabout">
    <property name="text">
     <string>关于</string>
+   </property>
+  </action>
+  <action name="lightThemeAction">
+   <property name="text">
+    <string>明亮</string>
+   </property>
+  </action>
+  <action name="darkThemeAction">
+   <property name="text">
+    <string>暗黑</string>
+   </property>
+  </action>
+  <action name="themeColorAction">
+   <property name="text">
+    <string>主题颜色</string>
    </property>
   </action>
  </widget>

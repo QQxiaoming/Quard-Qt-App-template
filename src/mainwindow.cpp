@@ -9,12 +9,14 @@
 #include "misc.h"
 #include "mainwindow.h"
 #include "globalsetting.h"
+#include "qfonticon.h"
 #include "filedialog.h"
 #include "ui_mainwindow.h"
 
-CentralWidget::CentralWidget(QWidget *parent)
+CentralWidget::CentralWidget(bool isDark, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::CentralWidget)
+    , isDarkTheme(isDark)
 {
     ui->setupUi(this);
 
@@ -259,9 +261,43 @@ void CentralWidget::checkCloseEvent(QCloseEvent *event) {
     }
 }
 
+void CentralWidget::on_lightThemeAction_triggered()
+{
+    if(!isDarkTheme) return;
+    isDarkTheme = false;
+    qGoodStateHolder->setCurrentThemeDark(isDarkTheme);
+    if(themeColorEnable) QGoodWindow::setAppCustomTheme(isDarkTheme,themeColor);
+    QFontIcon::instance()->setColor(Qt::black);
+    term->setColorScheme("QuardCRT Light");
+}
+
+void CentralWidget::on_darkThemeAction_triggered()
+{
+    if(isDarkTheme) return;
+    isDarkTheme = true;
+    qGoodStateHolder->setCurrentThemeDark(isDarkTheme);
+    if(themeColorEnable) QGoodWindow::setAppCustomTheme(isDarkTheme,themeColor);
+    QFontIcon::instance()->setColor(Qt::white);
+    term->setColorScheme("QuardCRT");
+}
+
+void CentralWidget::on_themeColorAction_triggered()
+{
+    QColor color = QColorDialog::getColor(themeColor, this, tr("Select color"));
+    if (color.isValid()) {
+        themeColor = color;
+        themeColorEnable = true;
+        qGoodStateHolder->setCurrentThemeDark(isDarkTheme);
+        QGoodWindow::setAppCustomTheme(isDarkTheme,themeColor);
+    } else {
+        themeColorEnable = false;
+        qGoodStateHolder->setCurrentThemeDark(isDarkTheme);
+    }
+}
+
 MainWindow::MainWindow(bool isDark, QWidget *parent)
     : QGoodWindow(parent) {
-    m_central_widget = new CentralWidget(this);
+    m_central_widget = new CentralWidget(isDark,this);
     m_central_widget->setWindowFlags(Qt::Widget);
 
     m_good_central_widget = new QGoodCentralWidget(this);
