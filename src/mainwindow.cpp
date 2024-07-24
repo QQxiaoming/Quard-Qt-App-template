@@ -43,9 +43,9 @@ CentralWidget::CentralWidget(QWidget *parent)
     });
 
     notifictionWidget = new NotifictionWidget(this);
-    ui->horizontalLayout_2->addWidget(notifictionWidget);
-    notifictionWidget->setFixedWidth(200);
+    ui->splitter_2->addWidget(notifictionWidget);
     notifictionWidget->hide();
+    ui->splitter_2->setSizes({100, 600, 100});
 
     term = new QTermWidget(this,this);
     term->setUrlFilterEnabled(false);
