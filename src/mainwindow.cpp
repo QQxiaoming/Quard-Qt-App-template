@@ -181,6 +181,19 @@ CentralWidget::CentralWidget(bool isDark, QWidget *parent)
             notifictionWidget->hide();
         }
     });
+
+    QTimer::singleShot(0, this, [this,parent](){
+        MainWindow *mainWindow = static_cast<MainWindow*>(parent);
+        //mainWindow->fixMenuBarWidth();
+    #if defined(Q_OS_LINUX)
+        // FIXME: only for linux, this is a bad hack, but it works
+        connect(mainWindow,&QGoodWindow::fixIssueWindowEvent,this,[this](QEvent::Type type){
+            if(type == QEvent::Resize) {
+                term->repaintDisplay();
+            }
+        });
+    #endif
+    });
 }
 
 CentralWidget::~CentralWidget()
