@@ -375,6 +375,7 @@ MainWindow::MainWindow(bool isDark, QWidget *parent)
 }
 
 MainWindow::~MainWindow() {
+    delete m_central_widget;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
