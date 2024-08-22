@@ -254,6 +254,7 @@ public:
     bool isContainHighLightText(const QString &text);
     void removeHighLightText(const QString &text);
     void clearHighLightTexts(void);
+    QMap<QString, QColor> getHighLightTexts(void);
 
     void setWordCharacters(const QString &wordCharacters);
     QString wordCharacters(void);
@@ -274,6 +275,7 @@ public:
 
     void setMessageParentWidget(QWidget *parent);
     void reTranslateUi(void);
+    void set_fix_quardCRT_issue33(bool fix);
 
 signals:
     void finished();
@@ -354,8 +356,8 @@ public slots:
 
     void toggleShowSearchBar();
 
-    void saveHistory(QIODevice *device, int format = 0);
-    void saveHistory(QTextStream *stream, int format = 0);
+    void saveHistory(QIODevice *device, int format = 0, int start = -1, int end = -1);
+    void saveHistory(QTextStream *stream, int format = 0, int start = -1, int end = -1);
     void screenShot(QPixmap *pixmap);
     void screenShot(const QString &fileName);
     void repaintDisplay(void);

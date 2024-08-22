@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/icons">
-        <file>../icons/fontawesome-webfont.ttf</file>
+        <file>../icons/fontawesome-webfont-v6.6.0-solid-900.ttf</file>
+        <file>../icons/fontawesome-webfont-v6.6.0-brands-400.ttf</file>
         <file>../icons/ico.icns</file>
         <file>../icons/ico.ico</file>
         <file>../icons/ico.png</file>

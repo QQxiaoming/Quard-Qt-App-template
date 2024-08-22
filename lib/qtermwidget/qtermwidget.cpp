@@ -272,6 +272,7 @@ void QTermWidget::startTerminalTeletype()
 
 QTermWidget::~QTermWidget()
 {
+    setUrlFilterEnabled(true);
     clearHighLightTexts();
     delete m_searchBar;
     delete m_impl;
@@ -727,7 +728,7 @@ int QTermWidget::getMargin() const
     return m_impl->m_terminalDisplay->margin();
 }
 
-void QTermWidget::saveHistory(QTextStream *stream, int format)
+void QTermWidget::saveHistory(QTextStream *stream, int format, int start, int end)
 {
     TerminalCharacterDecoder *decoder;
     if(format == 0) {
@@ -736,14 +737,20 @@ void QTermWidget::saveHistory(QTextStream *stream, int format)
         decoder = new HTMLDecoder;
     }
     decoder->begin(stream);
-    m_impl->m_session->emulation()->writeToStream(decoder, 0, m_impl->m_session->emulation()->lineCount());
+    if(start < 0) {
+        start = 0;
+    }
+    if(end < 0) {
+        end = m_impl->m_session->emulation()->lineCount();
+    }
+    m_impl->m_session->emulation()->writeToStream(decoder, start, end);
     delete decoder;
 }
 
-void QTermWidget::saveHistory(QIODevice *device, int format)
+void QTermWidget::saveHistory(QIODevice *device, int format, int start, int end)
 {
     QTextStream stream(device);
-    saveHistory(&stream, format);
+    saveHistory(&stream, format, start, end);
 }
 
 void QTermWidget::screenShot(QPixmap *pixmap)
@@ -812,6 +819,15 @@ void QTermWidget::addHighLightText(const QString &text, const QColor &color)
     m_impl->m_terminalDisplay->filterChain()->addFilter(highLightText->regExpFilter);
     m_impl->m_terminalDisplay->updateFilters();
     m_impl->m_terminalDisplay->repaint();
+}
+
+QMap<QString, QColor> QTermWidget::getHighLightTexts(void)
+{
+    QMap<QString, QColor> highLightTexts;
+    for (int i = 0; i < m_highLightTexts.size(); i++) {
+        highLightTexts.insert(m_highLightTexts.at(i)->text, m_highLightTexts.at(i)->color);
+    }
+    return highLightTexts;
 }
 
 bool QTermWidget::isContainHighLightText(const QString &text)
@@ -916,4 +932,8 @@ void QTermWidget::setMessageParentWidget(QWidget *parent) {
 
 void QTermWidget::reTranslateUi(void) {
     m_searchBar->retranslateUi();
+}
+
+void QTermWidget::set_fix_quardCRT_issue33(bool fix) {
+    m_impl->m_terminalDisplay->set_fix_quardCRT_issue33(fix);
 }

@@ -14,7 +14,8 @@ int main(int argc, char *argv[])
     QApplication application(argc, argv);
 
     bool isDarkTheme = true;
-    QFontIcon::addFont(":/icons/icons/fontawesome-webfont.ttf");
+    QFontIcon::addFont(":/icons/icons/fontawesome-webfont-v6.6.0-solid-900.ttf");
+    QFontIcon::addFont(":/icons/icons/fontawesome-webfont-v6.6.0-brands-400.ttf");
     QFontIcon::instance()->setColor(isDarkTheme?Qt::white:Qt::black);
 
     if(isDarkTheme) {
