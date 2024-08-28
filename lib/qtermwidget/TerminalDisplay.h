@@ -56,29 +56,24 @@ class QHideEvent;
 class QTimerEvent;
 class QWidget;
 
-//class KMenu;
-
-namespace Konsole
+enum MotionAfterPasting
 {
+    // No move screenwindow after pasting
+    NoMoveScreenWindow = 0,
+    // Move start of screenwindow after pasting
+    MoveStartScreenWindow = 1,
+    // Move end of screenwindow after pasting
+    MoveEndScreenWindow = 2
+};
 
-    enum MotionAfterPasting
-    {
-        // No move screenwindow after pasting
-        NoMoveScreenWindow = 0,
-        // Move start of screenwindow after pasting
-        MoveStartScreenWindow = 1,
-        // Move end of screenwindow after pasting
-        MoveEndScreenWindow = 2
-    };
-
-    enum BackgroundMode {
-        None,
-        Stretch,
-        Zoom,
-        Fit,
-        Center,
-        Tile
-    };
+enum BackgroundMode {
+    None,
+    Stretch,
+    Zoom,
+    Fit,
+    Center,
+    Tile
+};
 
 extern unsigned short vt100_graphics[32];
 
@@ -106,16 +101,6 @@ public:
     const ColorEntry* colorTable() const;
     /** Sets the terminal color palette used by the display. */
     void setColorTable(const ColorEntry table[]);
-    /**
-     * Sets the seed used to generate random colors for the display
-     * (in color schemes that support them).
-     */
-    void setRandomSeed(uint seed);
-    /**
-     * Returns the seed used to generate random colors for the display
-     * (in color schemes that support them).
-     */
-    uint randomSeed() const;
 
     /** Sets the opacity of the terminal display. */
     void setOpacity(qreal opacity);
@@ -581,7 +566,7 @@ public slots:
         // this is a bad hack, but it works
     #if defined(Q_OS_LINUX)
         this->hide();
-        QTimer::singleShot(100, this, SLOT(show()));
+        QTimer::singleShot(100, this, [this](){ this->show(); });
     #endif
     }
     void setMessageParentWidget(QWidget *parent) { messageParentWidget = parent; }
@@ -830,7 +815,6 @@ private:
     QVector<LineProperty> _lineProperties;
 
     ColorEntry _colorTable[TABLE_COLORS];
-    uint _randomSeed;
 
     bool _resizing;
     bool _terminalSizeHint;
@@ -1011,7 +995,5 @@ private:
     QPlainTextEdit *detailedText;
     QDialogButtonBox *buttonBox;
 };
-
-}
 
 #endif // TERMINALDISPLAY_H

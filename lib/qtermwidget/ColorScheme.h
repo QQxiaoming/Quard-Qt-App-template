@@ -18,11 +18,9 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
     02110-1301  USA.
 */
-
 #ifndef COLORSCHEME_H
 #define COLORSCHEME_H
 
-// Qt
 #include <QHash>
 #include <QList>
 #include <QMetaType>
@@ -30,14 +28,9 @@
 #include <QSet>
 #include <QSettings>
 
-// Konsole
 #include "CharacterColor.h"
 
 class QIODevice;
-//class KConfig;
-
-namespace Konsole
-{
 
 /**
  * Represents a color scheme for a terminal display.
@@ -84,8 +77,6 @@ public:
      *
      * @param table Array into which the color entries for this color scheme
      * are copied.
-     * @param randomSeed Color schemes may allow certain colors in their
-     * palette to be randomized.  The seed is used to pick the random color.
      */
     void getColorTable(ColorEntry* table) const;
 
@@ -310,8 +301,6 @@ private:
     static const ColorScheme _defaultColorScheme;
 };
 
-}
-
-Q_DECLARE_METATYPE(const Konsole::ColorScheme*)
+Q_DECLARE_METATYPE(const ColorScheme*)
 
 #endif //COLORSCHEME_H

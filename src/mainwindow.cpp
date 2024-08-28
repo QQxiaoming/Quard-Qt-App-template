@@ -57,7 +57,6 @@ CentralWidget::CentralWidget(bool isDark, QWidget *parent)
     term->setDrawLineChars(false);
     term->setSelectionOpacity(0.5);
     term->setEnableHandleCtrlC(true);
-    term->startTerminalTeletype();
     term->set_fix_quardCRT_issue33(true);
 
     QFont font = QApplication::font();
