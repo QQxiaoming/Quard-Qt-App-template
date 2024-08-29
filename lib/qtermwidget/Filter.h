@@ -1,20 +1,20 @@
 /*
-    Copyright 2007-2008 by Robert Knight <robertknight@gmail.com>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA.
+ Copyright 2007-2008 by Robert Knight <robertknight@gmail.com>
+ 
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ 02110-1301  USA.
 */
 
 #ifndef FILTER_H
@@ -64,70 +64,68 @@ public:
     * Hotspots may have more than one action, in which case the list of actions can be obtained using the
     * actions() method.  These actions may then be displayed in a popup menu or toolbar for example.
     */
-    class HotSpot
-    {
+    class HotSpot {
     public:
-       /**
-        * Constructs a new hotspot which covers the area from (@p startLine,@p startColumn) to (@p endLine,@p endColumn)
-        * in a block of text.
-        */
-       HotSpot(int startLine , int startColumn , int endLine , int endColumn);
-       virtual ~HotSpot();
+        /**
+            * Constructs a new hotspot which covers the area from (@p startLine,@p startColumn) to (@p endLine,@p endColumn)
+            * in a block of text.
+            */
+        HotSpot(int startLine , int startColumn , int endLine , int endColumn);
+        virtual ~HotSpot();
 
-       enum Type
-       {
+        enum Type {
             // the type of the hotspot is not specified
             NotSpecified,
             // this hotspot represents a clickable link
             Link,
             // this hotspot represents a marker
             Marker
-       };
+        };
 
-       /** Returns the line when the hotspot area starts */
-       int startLine() const;
-       /** Returns the line where the hotspot area ends */
-       int endLine() const;
-       /** Returns the column on startLine() where the hotspot area starts */
-       int startColumn() const;
-       /** Returns the column on endLine() where the hotspot area ends */
-       int endColumn() const;
+        /** Returns the line when the hotspot area starts */
+        int startLine() const;
+        /** Returns the line where the hotspot area ends */
+        int endLine() const;
+        /** Returns the column on startLine() where the hotspot area starts */
+        int startColumn() const;
+        /** Returns the column on endLine() where the hotspot area ends */
+        int endColumn() const;
 
-       /**
-        * Returns the type of the hotspot.  This is usually used as a hint for views on how to represent
-        * the hotspot graphically.  eg.  Link hotspots are typically underlined when the user mouses over them
-        */
-       Type type() const;
-       QColor color() const;
-       void setColor(const QColor& color);
-       /**
-        * Causes the an action associated with a hotspot to be triggered.
-        *
-        * @param action The action to trigger.  This is
-        * typically empty ( in which case the default action should be performed ) or
-        * one of the object names from the actions() list.  In which case the associated
-        * action should be performed.
-        */
-       virtual void clickAction(void) = 0;
-       virtual QString clickActionToolTip(void) = 0;
-       virtual bool hasClickAction(void) = 0;
-       /**
-        * Returns a list of actions associated with the hotspot which can be used in a
-        * menu or toolbar
-        */
-       virtual QList<QAction*> actions();
+        /**
+            * Returns the type of the hotspot.  This is usually used as a hint for views on how to represent
+            * the hotspot graphically.  eg.  Link hotspots are typically underlined when the user mouses over them
+            */
+        Type type() const;
+        QColor color() const;
+        void setColor(const QColor& color);
+        /**
+            * Causes the an action associated with a hotspot to be triggered.
+            *
+            * @param action The action to trigger.  This is
+            * typically empty ( in which case the default action should be performed ) or
+            * one of the object names from the actions() list.  In which case the associated
+            * action should be performed.
+            */
+        virtual void clickAction(void) = 0;
+        virtual QString clickActionToolTip(void) = 0;
+        virtual bool hasClickAction(void) = 0;
+        /**
+            * Returns a list of actions associated with the hotspot which can be used in a
+            * menu or toolbar
+            */
+        virtual QList<QAction*> actions();
 
     protected:
-       /** Sets the type of a hotspot.  This should only be set once */
-       void setType(Type type);
+        /** Sets the type of a hotspot.  This should only be set once */
+        void setType(Type type);
 
     private:
-       int    _startLine;
-       int    _startColumn;
-       int    _endLine;
-       int    _endColumn;
-       Type   _type;
-       QColor _color;
+        int    _startLine;
+        int    _startColumn;
+        int    _endLine;
+        int    _endColumn;
+        Type   _type;
+        QColor _color;
     };
 
     /** Constructs a new filter. */
@@ -191,8 +189,7 @@ public:
      * Type of hotspot created by RegExpFilter.  The capturedTexts() method can be used to find the text
      * matched by the filter's regular expression.
      */
-    class HotSpot : public Filter::HotSpot
-    {
+    class HotSpot : public Filter::HotSpot {
     public:
         HotSpot(int startLine, int startColumn, int endLine , int endColumn);
         void clickAction(void) override;
@@ -257,8 +254,7 @@ public:
      * Hotspot type created by UrlFilter instances.  The activate() method opens a web browser
      * at the given URL when called.
      */
-    class HotSpot : public RegExpFilter::HotSpot
-    {
+    class HotSpot : public RegExpFilter::HotSpot {
     public:
         HotSpot(int startLine,int startColumn,int endLine,int endColumn);
         ~HotSpot() override;
@@ -276,8 +272,7 @@ public:
         bool hasClickAction(void) override;
 
     private:
-        enum UrlType
-        {
+        enum UrlType {
             StandardUrl,
             Email,
             FilePath,

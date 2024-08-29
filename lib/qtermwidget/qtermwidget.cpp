@@ -1,19 +1,20 @@
-/*  Copyright (C) 2008 e_k (e_k@users.sourceforge.net)
+/*  
+ Copyright (C) 2008 e_k (e_k@users.sourceforge.net)
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Library General Public
-    License as published by the Free Software Foundation; either
-    version 2 of the License, or (at your option) any later version.
-
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Library General Public License for more details.
-
-    You should have received a copy of the GNU Library General Public License
-    along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-    Boston, MA 02110-1301, USA.
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Library General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Library General Public License for more details.
+ 
+ You should have received a copy of the GNU Library General Public License
+ along with this library; see the file COPYING.LIB.  If not, write to
+ the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ Boston, MA 02110-1301, USA.
 */
 #include <QLayout>
 #include <QBoxLayout>
@@ -43,15 +44,14 @@
 #define STEP_ZOOM 3
 
 QTermWidget::QTermWidget(QWidget *messageParentWidget, QWidget *parent)
-    : QWidget(parent)
-{
+    : QWidget(parent) {
     m_layout = new QVBoxLayout(this);
     m_layout->setContentsMargins(0, 0, 0, 0);
     setLayout(m_layout);
 
     m_terminalDisplay = new TerminalDisplay(this);
     m_emulation = new Vt102Emulation();
-    m_terminalDisplay->setBellMode(TerminalDisplay::NotifyBell);
+    m_terminalDisplay->setBellMode(TerminalDisplay::SystemBeepBell);
     m_terminalDisplay->setTerminalSizeHint(true);
     m_terminalDisplay->setTripleClickMode(TerminalDisplay::SelectWholeLine);
     m_terminalDisplay->setTerminalSizeStartup(true);
@@ -110,9 +110,9 @@ QTermWidget::QTermWidget(QWidget *messageParentWidget, QWidget *parent)
     connect( m_emulation, &Emulation::cursorChanged, this, &QTermWidget::cursorChanged);
 
     // That's OK, FilterChain's dtor takes care of UrlFilter.
-    urlFilter = new UrlFilter();
-    connect(urlFilter, &UrlFilter::activated, this, &QTermWidget::urlActivated);
-    m_terminalDisplay->filterChain()->addFilter(urlFilter);
+    m_urlFilter = new UrlFilter();
+    connect(m_urlFilter, &UrlFilter::activated, this, &QTermWidget::urlActivated);
+    m_terminalDisplay->filterChain()->addFilter(m_urlFilter);
     m_UrlFilterEnable = true;
 
     m_searchBar = new SearchBar(this);
@@ -163,31 +163,28 @@ QTermWidget::QTermWidget(QWidget *messageParentWidget, QWidget *parent)
     });
 }
 
-QTermWidget::~QTermWidget()
-{
-    setUrlFilterEnabled(true);
+QTermWidget::~QTermWidget() {
+    setUrlFilterEnabled(false);
     clearHighLightTexts();
+    delete m_urlFilter;
     delete m_searchBar;
     emit destroyed();
     delete m_emulation;
 }
 
-void QTermWidget::selectionChanged(bool textSelected)
-{
+void QTermWidget::selectionChanged(bool textSelected) {
     emit copyAvailable(textSelected);
 }
 
-void QTermWidget::search(bool forwards, bool next)
-{
+void QTermWidget::search(bool forwards, bool next) {
     int startColumn, startLine;
 
-    if (next) // search from just after current selection
-    {
+    if (next) {
+        // search from just after current selection
         m_terminalDisplay->screenWindow()->screen()->getSelectionEnd(startColumn, startLine);
         startColumn++;
-    }
-    else // search from start of current selection
-    {
+    } else {
+        // search from start of current selection
         m_terminalDisplay->screenWindow()->screen()->getSelectionStart(startColumn, startLine);
     }
 
@@ -220,93 +217,74 @@ void QTermWidget::search(bool forwards, bool next)
     historySearch->search();
 }
 
-QSize QTermWidget::sizeHint() const
-{
+QSize QTermWidget::sizeHint() const {
     QSize size = m_terminalDisplay->sizeHint();
     size.rheight() = 150;
     return size;
 }
 
-void QTermWidget::setTerminalSizeHint(bool enabled)
-{
+void QTermWidget::setTerminalSizeHint(bool enabled) {
     m_terminalDisplay->setTerminalSizeHint(enabled);
 }
 
-bool QTermWidget::terminalSizeHint()
-{
+bool QTermWidget::terminalSizeHint() {
     return m_terminalDisplay->terminalSizeHint();
 }
 
-void QTermWidget::setTerminalFont(const QFont &font)
-{
+void QTermWidget::setTerminalFont(const QFont &font) {
     m_terminalDisplay->setVTFont(font);
 }
 
-QFont QTermWidget::getTerminalFont()
-{
+QFont QTermWidget::getTerminalFont() {
     return m_terminalDisplay->getVTFont();
 }
 
-void QTermWidget::setTerminalOpacity(qreal level)
-{
+void QTermWidget::setTerminalOpacity(qreal level) {
     m_terminalDisplay->setOpacity(level);
 }
 
-void QTermWidget::setTerminalBackgroundImage(const QString& backgroundImage)
-{
+void QTermWidget::setTerminalBackgroundImage(const QString& backgroundImage) {
     m_terminalDisplay->setBackgroundImage(backgroundImage);
 }
 
-void QTermWidget::setTerminalBackgroundMovie(const QString& backgroundMovie)
-{
+void QTermWidget::setTerminalBackgroundMovie(const QString& backgroundMovie) {
     m_terminalDisplay->setBackgroundMovie(backgroundMovie);
 }
 
-void QTermWidget::setTerminalBackgroundVideo(const QString& backgroundVideo)
-{
+void QTermWidget::setTerminalBackgroundVideo(const QString& backgroundVideo) {
     m_terminalDisplay->setBackgroundVideo(backgroundVideo);
 }
 
-void QTermWidget::setTerminalBackgroundMode(int mode)
-{
+void QTermWidget::setTerminalBackgroundMode(int mode) {
     m_terminalDisplay->setBackgroundMode((BackgroundMode)mode);
 }
 
-void QTermWidget::setTextCodec(QStringEncoder codec)
-{
+void QTermWidget::setTextCodec(QStringEncoder codec) {
     m_emulation->setCodec(std::move(codec));
 }
 
-void QTermWidget::setColorScheme(const QString& origName)
-{
+void QTermWidget::setColorScheme(const QString& origName) {
     const ColorScheme *cs = nullptr;
 
     const bool isFile = QFile::exists(origName);
-    const QString& name = isFile ?
-            QFileInfo(origName).baseName() :
-            origName;
+    const QString& name = isFile ? QFileInfo(origName).baseName() : origName;
 
     // avoid legacy (int) solution
-    if (!availableColorSchemes().contains(name))
-    {
-        if (isFile)
-        {
+    if (!availableColorSchemes().contains(name)) {
+        if (isFile) {
             if (ColorSchemeManager::instance()->loadCustomColorScheme(origName))
                 cs = ColorSchemeManager::instance()->findColorScheme(name);
             else
-                qWarning () << Q_FUNC_INFO
-                        << "cannot load color scheme from"
-                        << origName;
+                qWarning () << Q_FUNC_INFO << "cannot load color scheme from" << origName;
         }
 
         if (!cs)
             cs = ColorSchemeManager::instance()->defaultColorScheme();
-    }
-    else
+    } else {
         cs = ColorSchemeManager::instance()->findColorScheme(name);
+    }
 
-    if (! cs)
-    {
+    if (! cs) {
         QMessageBox::information(messageParentWidget,
                                  tr("Color Scheme Error"),
                                  tr("Cannot load color scheme: %1").arg(name));
@@ -318,13 +296,11 @@ void QTermWidget::setColorScheme(const QString& origName)
     m_hasDarkBackground = cs->hasDarkBackground();
 }
 
-QStringList QTermWidget::getAvailableColorSchemes()
-{
+QStringList QTermWidget::getAvailableColorSchemes() {
    return QTermWidget::availableColorSchemes();
 }
 
-QStringList QTermWidget::availableColorSchemes()
-{
+QStringList QTermWidget::availableColorSchemes() {
     QStringList ret;
     const auto allColorSchemes = ColorSchemeManager::instance()->allColorSchemes();
     for (const ColorScheme* cs : allColorSchemes)
@@ -332,38 +308,31 @@ QStringList QTermWidget::availableColorSchemes()
     return ret;
 }
 
-void QTermWidget::addCustomColorSchemeDir(const QString& custom_dir)
-{
+void QTermWidget::addCustomColorSchemeDir(const QString& custom_dir) {
     ColorSchemeManager::instance()->addCustomColorSchemeDir(custom_dir);
 }
 
-void QTermWidget::setBackgroundColor(const QColor &color)
-{
+void QTermWidget::setBackgroundColor(const QColor &color) {
     m_terminalDisplay->setBackgroundColor(color);
 }
 
-void QTermWidget::setForegroundColor(const QColor &color)
-{
+void QTermWidget::setForegroundColor(const QColor &color) {
     m_terminalDisplay->setForegroundColor(color);
 }
 
-void QTermWidget::setANSIColor(const int ansiColorId, const QColor &color)
-{
+void QTermWidget::setANSIColor(const int ansiColorId, const QColor &color) {
     m_terminalDisplay->setColorTableColor(ansiColorId, color);
 }
 
-void QTermWidget::setPreeditColorIndex(int index)
-{
+void QTermWidget::setPreeditColorIndex(int index) {
     m_terminalDisplay->setPreeditColorIndex(index);
 }
 
-void QTermWidget::setSize(const QSize &size)
-{
+void QTermWidget::setSize(const QSize &size) {
     m_terminalDisplay->setSize(size.width(), size.height());
 }
 
-void QTermWidget::setHistorySize(int lines)
-{
+void QTermWidget::setHistorySize(int lines) {
     if (lines < 0)
         m_emulation->setHistory(HistoryTypeFile());
     else if (lines == 0)
@@ -372,8 +341,7 @@ void QTermWidget::setHistorySize(int lines)
         m_emulation->setHistory(HistoryTypeBuffer(lines));
 }
 
-int QTermWidget::historySize() const
-{
+int QTermWidget::historySize() const {
     const HistoryType& currentHistory = m_emulation->history();
 
      if (currentHistory.isEnabled()) {
@@ -387,39 +355,32 @@ int QTermWidget::historySize() const
      }
 }
 
-void QTermWidget::setScrollBarPosition(ScrollBarPosition pos)
-{
+void QTermWidget::setScrollBarPosition(ScrollBarPosition pos) {
     m_terminalDisplay->setScrollBarPosition(pos);
 }
 
-void QTermWidget::scrollToEnd()
-{
+void QTermWidget::scrollToEnd() {
     m_terminalDisplay->scrollToEnd();
 }
 
-void QTermWidget::sendText(const QString &text)
-{
+void QTermWidget::sendText(const QString &text) {
     m_emulation->sendText(text);
 }
 
-void QTermWidget::sendKeyEvent(QKeyEvent *e)
-{
+void QTermWidget::sendKeyEvent(QKeyEvent *e) {
     m_emulation->sendKeyEvent(e, false);
 }
 
-void QTermWidget::resizeEvent(QResizeEvent*)
-{
+void QTermWidget::resizeEvent(QResizeEvent*) {
     //qDebug("global window resizing...with %d %d", this->size().width(), this->size().height());
     m_terminalDisplay->resize(this->size());
 }
 
-void QTermWidget::sessionFinished()
-{
+void QTermWidget::sessionFinished() {
     emit finished();
 }
 
-void QTermWidget::updateTerminalSize()
-{
+void QTermWidget::updateTerminalSize() {
     int minLines = -1;
     int minColumns = -1;
 
@@ -443,8 +404,7 @@ void QTermWidget::updateTerminalSize()
     }
 }
 
-void QTermWidget::monitorTimerDone()
-{
+void QTermWidget::monitorTimerDone() {
     //FIXME: The idea here is that the notification popup will appear to tell the user than output from
     //the terminal has stopped and the popup will disappear when the user activates the session.
     //
@@ -463,10 +423,9 @@ void QTermWidget::monitorTimerDone()
     m_notifiedActivity=false;
 }
 
-void QTermWidget::activityStateSet(int state)
-{
+void QTermWidget::activityStateSet(int state) {
     if (state==NOTIFYBELL) {
-        m_terminalDisplay->bell(tr("Bell in session"));
+        m_terminalDisplay->bell("Bell in QTermWidget!");
     } else if (state==NOTIFYACTIVITY) {
         if (m_monitorSilence) {
             m_monitorTimer->start(m_silenceSeconds*1000);
@@ -491,16 +450,14 @@ void QTermWidget::activityStateSet(int state)
     emit stateChanged(state);
 }
 
-void QTermWidget::setMonitorActivity(bool enabled)
-{
+void QTermWidget::setMonitorActivity(bool enabled) {
     m_monitorActivity=enabled;
     m_notifiedActivity=false;
 
     activityStateSet(NOTIFYNORMAL);
 }
 
-void QTermWidget::setMonitorSilence(bool enabled)
-{
+void QTermWidget::setMonitorSilence(bool enabled) {
     if (m_monitorSilence==enabled) {
         return;
     }
@@ -515,56 +472,46 @@ void QTermWidget::setMonitorSilence(bool enabled)
     activityStateSet(NOTIFYNORMAL);
 }
 
-void QTermWidget::setSilenceTimeout(int seconds)
-{
+void QTermWidget::setSilenceTimeout(int seconds) {
     m_silenceSeconds=seconds;
     if (m_monitorSilence) {
         m_monitorTimer->start(m_silenceSeconds*1000);
     }
 }
 
-void QTermWidget::bracketText(QString& text)
-{
+void QTermWidget::bracketText(QString& text) {
     m_terminalDisplay->bracketText(text);
 }
 
-void QTermWidget::disableBracketedPasteMode(bool disable)
-{
+void QTermWidget::disableBracketedPasteMode(bool disable) {
     m_terminalDisplay->disableBracketedPasteMode(disable);
 }
 
-bool QTermWidget::bracketedPasteModeIsDisabled() const
-{
+bool QTermWidget::bracketedPasteModeIsDisabled() const {
     return m_terminalDisplay->bracketedPasteModeIsDisabled();
 }
 
-void QTermWidget::copyClipboard()
-{
+void QTermWidget::copyClipboard() {
     m_terminalDisplay->copyClipboard(QClipboard::Clipboard);
 }
 
-void QTermWidget::copySelection()
-{
+void QTermWidget::copySelection() {
     m_terminalDisplay->copyClipboard(QClipboard::Selection);
 }
 
-void QTermWidget::pasteClipboard()
-{
+void QTermWidget::pasteClipboard() {
     m_terminalDisplay->pasteClipboard();
 }
 
-void QTermWidget::pasteSelection()
-{
+void QTermWidget::pasteSelection() {
     m_terminalDisplay->pasteSelection();
 }
 
-void QTermWidget::selectAll()
-{
+void QTermWidget::selectAll() {
     m_terminalDisplay->selectAll();
 }
 
-int QTermWidget::setZoom(int step)
-{
+int QTermWidget::setZoom(int step) {
     QFont font = m_terminalDisplay->getVTFont();
 
     font.setPointSize(font.pointSize() + step);
@@ -572,34 +519,28 @@ int QTermWidget::setZoom(int step)
     return font.pointSize();
 }
 
-int QTermWidget::zoomIn()
-{
+int QTermWidget::zoomIn() {
     return setZoom(STEP_ZOOM);
 }
 
-int QTermWidget::zoomOut()
-{
+int QTermWidget::zoomOut() {
     return setZoom(-STEP_ZOOM);
 }
 
-void QTermWidget::setKeyBindings(const QString & kb)
-{
+void QTermWidget::setKeyBindings(const QString & kb) {
     m_emulation->setKeyBindings(kb);
 }
 
-void QTermWidget::clear()
-{
+void QTermWidget::clear() {
     clearScreen();
     clearScrollback();
 }
 
-void QTermWidget::clearScrollback()
-{
+void QTermWidget::clearScrollback() {
     m_emulation->clearHistory();
 }
 
-void QTermWidget::clearScreen()
-{
+void QTermWidget::clearScreen() {
     m_emulation->reset();
     /**
      * TODO:
@@ -609,8 +550,7 @@ void QTermWidget::clearScreen()
      */
 }
 
-void QTermWidget::setFlowControlEnabled(bool enabled)
-{
+void QTermWidget::setFlowControlEnabled(bool enabled) {
     if (m_flowControl == enabled) {
         return;
     }
@@ -620,31 +560,26 @@ void QTermWidget::setFlowControlEnabled(bool enabled)
     emit flowControlEnabledChanged(enabled);
 }
 
-bool QTermWidget::flowControlEnabled(void)
-{
+bool QTermWidget::flowControlEnabled(void) {
     return m_flowControl;
 }
 
-void QTermWidget::setFlowControlWarningEnabled(bool enabled)
-{
+void QTermWidget::setFlowControlWarningEnabled(bool enabled) {
     if (flowControlEnabled()) {
         // Do not show warning label if flow control is disabled
         m_terminalDisplay->setFlowControlWarningEnabled(enabled);
     }
 }
 
-QStringList QTermWidget::availableKeyBindings()
-{
+QStringList QTermWidget::availableKeyBindings() {
     return KeyboardTranslatorManager::instance()->allTranslators();
 }
 
-QString QTermWidget::keyBindings()
-{
+QString QTermWidget::keyBindings() {
     return m_emulation->keyBindings();
 }
 
-void QTermWidget::toggleShowSearchBar()
-{
+void QTermWidget::toggleShowSearchBar() {
     if(m_searchBar->isHidden()) {
         m_searchBar->setText(selectedText(true));
         m_searchBar->show();
@@ -653,118 +588,96 @@ void QTermWidget::toggleShowSearchBar()
     }
 }
 
-void QTermWidget::setMotionAfterPasting(int action)
-{
+void QTermWidget::setMotionAfterPasting(int action) {
     m_terminalDisplay->setMotionAfterPasting((MotionAfterPasting) action);
 }
 
-int QTermWidget::historyLinesCount()
-{
+int QTermWidget::historyLinesCount() {
     return m_terminalDisplay->screenWindow()->screen()->getHistLines();
 }
 
-int QTermWidget::screenColumnsCount()
-{
+int QTermWidget::screenColumnsCount() {
     return m_terminalDisplay->screenWindow()->screen()->getColumns();
 }
 
-int QTermWidget::screenLinesCount()
-{
+int QTermWidget::screenLinesCount() {
     return m_terminalDisplay->screenWindow()->screen()->getLines();
 }
 
-void QTermWidget::setSelectionStart(int row, int column)
-{
+void QTermWidget::setSelectionStart(int row, int column) {
     m_terminalDisplay->screenWindow()->screen()->setSelectionStart(column, row, true);
 }
 
-void QTermWidget::setSelectionEnd(int row, int column)
-{
+void QTermWidget::setSelectionEnd(int row, int column) {
     m_terminalDisplay->screenWindow()->screen()->setSelectionEnd(column, row);
 }
 
-void QTermWidget::getSelectionStart(int& row, int& column)
-{
+void QTermWidget::getSelectionStart(int& row, int& column) {
     m_terminalDisplay->screenWindow()->screen()->getSelectionStart(column, row);
 }
 
-void QTermWidget::getSelectionEnd(int& row, int& column)
-{
+void QTermWidget::getSelectionEnd(int& row, int& column) {
     m_terminalDisplay->screenWindow()->screen()->getSelectionEnd(column, row);
 }
 
-QString QTermWidget::selectedText(bool preserveLineBreaks)
-{
+QString QTermWidget::selectedText(bool preserveLineBreaks) {
     return m_terminalDisplay->screenWindow()->screen()->selectedText(preserveLineBreaks);
 }
 
-Filter::HotSpot* QTermWidget::getHotSpotAt(const QPoint &pos) const
-{
+Filter::HotSpot* QTermWidget::getHotSpotAt(const QPoint &pos) const {
     int row = 0, column = 0;
     m_terminalDisplay->getCharacterPosition(pos, row, column);
     return getHotSpotAt(row, column);
 }
 
-Filter::HotSpot* QTermWidget::getHotSpotAt(int row, int column) const
-{
+Filter::HotSpot* QTermWidget::getHotSpotAt(int row, int column) const {
     return m_terminalDisplay->filterChain()->hotSpotAt(row, column);
 }
 
-QList<QAction*> QTermWidget::filterActions(const QPoint& position)
-{
+QList<QAction*> QTermWidget::filterActions(const QPoint& position) {
     return m_terminalDisplay->filterActions(position);
 }
 
-int QTermWidget::recvData(const char *buff, int len) const
-{
+int QTermWidget::recvData(const char *buff, int len) const {
     m_emulation->receiveData( buff, len );
     return len;
 }
 
-void QTermWidget::setKeyboardCursorShape(KeyboardCursorShape shape)
-{
+void QTermWidget::setKeyboardCursorShape(KeyboardCursorShape shape) {
     m_terminalDisplay->setKeyboardCursorShape(shape);
 }
 
-void QTermWidget::setKeyboardCursorShape(uint32_t shape)
-{
+void QTermWidget::setKeyboardCursorShape(uint32_t shape) {
     m_terminalDisplay->setKeyboardCursorShape((KeyboardCursorShape)shape);
 }
 
-void QTermWidget::setBlinkingCursor(bool blink)
-{
+void QTermWidget::setBlinkingCursor(bool blink) {
     m_terminalDisplay->setBlinkingCursor(blink);
 }
 
-void QTermWidget::setBidiEnabled(bool enabled)
-{
+void QTermWidget::setBidiEnabled(bool enabled) {
     m_terminalDisplay->setBidiEnabled(enabled);
 }
 
-bool QTermWidget::isBidiEnabled()
-{
+bool QTermWidget::isBidiEnabled() {
     return m_terminalDisplay->isBidiEnabled();
 }
 
-void QTermWidget::cursorChanged(Emulation::KeyboardCursorShape cursorShape, bool blinkingCursorEnabled)
-{
+void QTermWidget::cursorChanged(Emulation::KeyboardCursorShape cursorShape, bool blinkingCursorEnabled) {
     // TODO: A switch to enable/disable DECSCUSR?
     setKeyboardCursorShape(cursorShape);
     setBlinkingCursor(blinkingCursorEnabled);
 }
 
-void QTermWidget::setMargin(int margin)
-{
+void QTermWidget::setMargin(int margin) {
     m_terminalDisplay->setMargin(margin);
 }
 
-int QTermWidget::getMargin() const
-{
+int QTermWidget::getMargin() const {
     return m_terminalDisplay->margin();
 }
 
-void QTermWidget::saveHistory(QTextStream *stream, int format, int start, int end)
-{
+void QTermWidget::saveHistory(QTextStream *stream, int format, int start, int end) {
     TerminalCharacterDecoder *decoder;
     if(format == 0) {
         decoder = new PlainTextDecoder;
@@ -782,26 +695,22 @@ void QTermWidget::saveHistory(QTextStream *stream, int format, int start, int en
     delete decoder;
 }
 
-void QTermWidget::saveHistory(QIODevice *device, int format, int start, int end)
-{
+void QTermWidget::saveHistory(QIODevice *device, int format, int start, int end) {
     QTextStream stream(device);
     saveHistory(&stream, format, start, end);
 }
 
-void QTermWidget::screenShot(QPixmap *pixmap)
-{
+void QTermWidget::screenShot(QPixmap *pixmap) {
     QPixmap currPixmap(m_terminalDisplay->size());
     m_terminalDisplay->render(&currPixmap);
     *pixmap = currPixmap.scaled(pixmap->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 }
 
-void QTermWidget::repaintDisplay(void)
-{
+void QTermWidget::repaintDisplay(void) {
     m_terminalDisplay->repaintDisplay();
 }
 
-void QTermWidget::screenShot(const QString &fileName)
-{
+void QTermWidget::screenShot(const QString &fileName) {
     qreal deviceratio = m_terminalDisplay->devicePixelRatio();
     deviceratio = deviceratio*2;
     QPixmap pixmap(m_terminalDisplay->size() * deviceratio);
@@ -810,19 +719,16 @@ void QTermWidget::screenShot(const QString &fileName)
     pixmap.save(fileName);
 }
 
-void QTermWidget::setLocked(bool enabled)
-{
+void QTermWidget::setLocked(bool enabled) {
     this->setEnabled(!enabled);
     m_terminalDisplay->setLocked(enabled);
 }
 
-void QTermWidget::setDrawLineChars(bool drawLineChars)
-{
+void QTermWidget::setDrawLineChars(bool drawLineChars) {
     m_terminalDisplay->setDrawLineChars(drawLineChars);
 }
 
-void QTermWidget::setBoldIntense(bool boldIntense)
-{
+void QTermWidget::setBoldIntense(bool boldIntense) {
     m_terminalDisplay->setBoldIntense(boldIntense);
 }
 
@@ -842,8 +748,7 @@ void QTermWidget::setKeyboardCursorColor(bool useForegroundColor, const QColor& 
     m_terminalDisplay->setKeyboardCursorColor(useForegroundColor, color);
 }
 
-void QTermWidget::addHighLightText(const QString &text, const QColor &color)
-{
+void QTermWidget::addHighLightText(const QString &text, const QColor &color) {
     for (int i = 0; i < m_highLightTexts.size(); i++) {
         if (m_highLightTexts.at(i)->text == text) {
             return;
@@ -856,8 +761,7 @@ void QTermWidget::addHighLightText(const QString &text, const QColor &color)
     m_terminalDisplay->repaint();
 }
 
-QMap<QString, QColor> QTermWidget::getHighLightTexts(void)
-{
+QMap<QString, QColor> QTermWidget::getHighLightTexts(void) {
     QMap<QString, QColor> highLightTexts;
     for (int i = 0; i < m_highLightTexts.size(); i++) {
         highLightTexts.insert(m_highLightTexts.at(i)->text, m_highLightTexts.at(i)->color);
@@ -865,8 +769,7 @@ QMap<QString, QColor> QTermWidget::getHighLightTexts(void)
     return highLightTexts;
 }
 
-bool QTermWidget::isContainHighLightText(const QString &text)
-{
+bool QTermWidget::isContainHighLightText(const QString &text) {
     for (int i = 0; i < m_highLightTexts.size(); i++) {
         if (m_highLightTexts.at(i)->text == text) {
             return true;
@@ -875,8 +778,7 @@ bool QTermWidget::isContainHighLightText(const QString &text)
     return false;
 }
 
-void QTermWidget::removeHighLightText(const QString &text)
-{
+void QTermWidget::removeHighLightText(const QString &text) {
     for (int i = 0; i < m_highLightTexts.size(); i++) {
         if (m_highLightTexts.at(i)->text == text) {
             m_terminalDisplay->filterChain()->removeFilter(m_highLightTexts.at(i)->regExpFilter);
@@ -889,8 +791,7 @@ void QTermWidget::removeHighLightText(const QString &text)
     m_terminalDisplay->repaint();
 }
 
-void QTermWidget::clearHighLightTexts(void)
-{
+void QTermWidget::clearHighLightTexts(void) {
     for (int i = 0; i < m_highLightTexts.size(); i++) {
         m_terminalDisplay->filterChain()->removeFilter(m_highLightTexts.at(i)->regExpFilter);
         delete m_highLightTexts.at(i);
@@ -900,8 +801,7 @@ void QTermWidget::clearHighLightTexts(void)
     m_terminalDisplay->repaint();
 }
 
-void QTermWidget::setWordCharacters(const QString &wordCharacters)
-{
+void QTermWidget::setWordCharacters(const QString &wordCharacters) {
     m_terminalDisplay->setWordCharacters(wordCharacters);
 }
 
@@ -954,9 +854,9 @@ void QTermWidget::setUrlFilterEnabled(bool enable) {
         return;
     }
     if(enable) {
-        m_terminalDisplay->filterChain()->addFilter(urlFilter);
+        m_terminalDisplay->filterChain()->addFilter(m_urlFilter);
     } else {
-        m_terminalDisplay->filterChain()->removeFilter(urlFilter);
+        m_terminalDisplay->filterChain()->removeFilter(m_urlFilter);
     }
 }
 

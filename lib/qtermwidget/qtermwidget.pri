@@ -29,15 +29,12 @@ HEADERS += \
     $$PWD/Character.h \
     $$PWD/ColorScheme.h \
     $$PWD/ColorTables.h \
-    $$PWD/DefaultTranslatorText.h \
     $$PWD/Emulation.h \
-    $$PWD/ExtendedDefaultTranslator.h \
     $$PWD/Filter.h \
     $$PWD/History.h \
     $$PWD/HistorySearch.h \
     $$PWD/KeyboardTranslator.h \
     $$PWD/CharWidth.h \
-    $$PWD/LineFont.h \
     $$PWD/qtermwidget.h \
     $$PWD/qtermwidget_version.h \
     $$PWD/Screen.h \

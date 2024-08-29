@@ -1,22 +1,22 @@
 /*
-    This source file is part of Konsole, a terminal emulator.
-
-    Copyright 2007-2008 by Robert Knight <robertknight@gmail.com>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA.
+ This source file is part of Konsole, a terminal emulator.
+ 
+ Copyright 2007-2008 by Robert Knight <robertknight@gmail.com>
+ 
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ 02110-1301  USA.
 */
 #ifndef COLORSCHEME_H
 #define COLORSCHEME_H
@@ -60,7 +60,7 @@ public:
     QString name() const;
 
 #if 0
-// Implemented upstream - in user apps
+    // Implemented upstream - in user apps
     /** Reads the color scheme from the specified configuration source */
     void read(KConfig& config);
     /** Writes the color scheme to the specified configuration source */
@@ -140,13 +140,11 @@ public:
 
 private:
     // specifies how much a particular color can be randomized by
-    class RandomizationRange
-    {
+    class RandomizationRange {
     public:
         RandomizationRange() : hue(0) , saturation(0) , value(0) {}
 
-        bool isNull() const
-        {
+        bool isNull() const {
             return ( hue == 0 && saturation == 0 && value == 0 );
         }
 
@@ -160,7 +158,7 @@ private:
     const ColorEntry* colorTable() const;
 
 #if 0
-// implemented upstream - user apps
+    // implemented upstream - user apps
     // reads a single colour entry from a KConfig source
     // and sets the palette entry at 'index' to the entry read.
     void readColorEntry(KConfig& config , int index);

@@ -1,22 +1,21 @@
-/*  Copyright (C) 2008 e_k (e_k@users.sourceforge.net)
+/*  
+ Copyright (C) 2008 e_k (e_k@users.sourceforge.net)
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Library General Public
-    License as published by the Free Software Foundation; either
-    version 2 of the License, or (at your option) any later version.
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Library General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
 
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Library General Public License for more details.
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Library General Public License for more details.
 
-    You should have received a copy of the GNU Library General Public License
-    along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-    Boston, MA 02110-1301, USA.
+ You should have received a copy of the GNU Library General Public License
+ along with this library; see the file COPYING.LIB.  If not, write to
+ the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ Boston, MA 02110-1301, USA.
 */
-
-
 #ifndef _Q_TERM_WIDGET
 #define _Q_TERM_WIDGET
 
@@ -374,11 +373,11 @@ private:
     QWidget *messageParentWidget = nullptr;
     TerminalDisplay *m_terminalDisplay = nullptr;
     Emulation  *m_emulation = nullptr;
-    SearchBar* m_searchBar;
-    QVBoxLayout *m_layout;
+    SearchBar* m_searchBar = nullptr;
+    QVBoxLayout *m_layout = nullptr;
     QList<HighLightText*> m_highLightTexts;
     bool m_echo = false;
-    UrlFilter *urlFilter = nullptr;
+    UrlFilter *m_urlFilter = nullptr;
     bool m_UrlFilterEnable = true;
     bool m_flowControl = true;
     // Color/Font Changes by ESC Sequences
@@ -386,7 +385,7 @@ private:
     bool m_monitorActivity = false;
     bool m_monitorSilence = false;
     bool m_notifiedActivity = false;
-    QTimer* m_monitorTimer;
+    QTimer* m_monitorTimer = nullptr;
     int m_silenceSeconds = 10;
 };
 

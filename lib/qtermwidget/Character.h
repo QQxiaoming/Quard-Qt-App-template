@@ -1,23 +1,23 @@
 /*
-    This file is part of Konsole, KDE's terminal.
-
-    Copyright 2007-2008 by Robert Knight <robertknight@gmail.com>
-    Copyright 1997,1998 by Lars Doelle <lars.doelle@on-line.de>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA.
+ This file is part of Konsole, KDE's terminal.
+ 
+ Copyright 2007-2008 by Robert Knight <robertknight@gmail.com>
+ Copyright 1997,1998 by Lars Doelle <lars.doelle@on-line.de>
+ 
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ 02110-1301  USA.
 */
 #ifndef CHARACTER_H
 #define CHARACTER_H
@@ -55,105 +55,102 @@ static const int LINE_DOUBLEHEIGHT     = (1 << 2);
 class Character
 {
 public:
-  /**
-   * Constructs a new character.
-   *
-   * @param _c The unicode character value of this character.
-   * @param _f The foreground color used to draw the character.
-   * @param _b The color used to draw the character's background.
-   * @param _r A set of rendition flags which specify how this character is to be drawn.
-   */
-  inline Character(quint16 _c = ' ',
+    /**
+     * Constructs a new character.
+     *
+     * @param _c The unicode character value of this character.
+     * @param _f The foreground color used to draw the character.
+     * @param _b The color used to draw the character's background.
+     * @param _r A set of rendition flags which specify how this character is to be drawn.
+     */
+    inline Character(quint16 _c = ' ',
             CharacterColor  _f = CharacterColor(COLOR_SPACE_DEFAULT,DEFAULT_FORE_COLOR),
             CharacterColor  _b = CharacterColor(COLOR_SPACE_DEFAULT,DEFAULT_BACK_COLOR),
             quint8  _r = DEFAULT_RENDITION)
-       : character(_c), rendition(_r), foregroundColor(_f), backgroundColor(_b) {}
+        : character(_c)
+        , rendition(_r)
+        , foregroundColor(_f)
+        , backgroundColor(_b) {
+    }
 
-  union
-  {
-    /** The unicode character value for this character. */
-    wchar_t character;
+    union {
+        /** The unicode character value for this character. */
+        wchar_t character;
+        /**
+         * Experimental addition which allows a single Character instance to contain more than
+         * one unicode character.
+         *
+         * charSequence is a hash code which can be used to look up the unicode
+         * character sequence in the ExtendedCharTable used to create the sequence.
+         */
+        quint16 charSequence;
+    };
+
+    /** A combination of RENDITION flags which specify options for drawing the character. */
+    quint8  rendition;
+
+    /** The foreground color used to draw this character. */
+    CharacterColor  foregroundColor;
+    /** The color used to draw this character's background. */
+    CharacterColor  backgroundColor;
+
     /**
-     * Experimental addition which allows a single Character instance to contain more than
-     * one unicode character.
-     *
-     * charSequence is a hash code which can be used to look up the unicode
-     * character sequence in the ExtendedCharTable used to create the sequence.
+     * Returns true if this character has a transparent background when
+     * it is drawn with the specified @p palette.
      */
-    quint16 charSequence;
-  };
+    bool   isTransparent(const ColorEntry* palette) const;
+    /**
+     * Returns true if this character should always be drawn in bold when
+     * it is drawn with the specified @p palette, independent of whether
+     * or not the character has the RE_BOLD rendition flag.
+     */
+    ColorEntry::FontWeight fontWeight(const ColorEntry* base) const;
 
-  /** A combination of RENDITION flags which specify options for drawing the character. */
-  quint8  rendition;
+    /**
+     * returns true if the format (color, rendition flag) of the compared characters is equal
+     */
+    bool equalsFormat(const Character &other) const;
 
-  /** The foreground color used to draw this character. */
-  CharacterColor  foregroundColor;
-  /** The color used to draw this character's background. */
-  CharacterColor  backgroundColor;
-
-  /**
-   * Returns true if this character has a transparent background when
-   * it is drawn with the specified @p palette.
-   */
-  bool   isTransparent(const ColorEntry* palette) const;
-  /**
-   * Returns true if this character should always be drawn in bold when
-   * it is drawn with the specified @p palette, independent of whether
-   * or not the character has the RE_BOLD rendition flag.
-   */
-  ColorEntry::FontWeight fontWeight(const ColorEntry* base) const;
-
-  /**
-   * returns true if the format (color, rendition flag) of the compared characters is equal
-   */
-  bool equalsFormat(const Character &other) const;
-
-  /**
-   * Compares two characters and returns true if they have the same unicode character value,
-   * rendition and colors.
-   */
-  friend bool operator == (const Character& a, const Character& b);
-  /**
-   * Compares two characters and returns true if they have different unicode character values,
-   * renditions or colors.
-   */
-  friend bool operator != (const Character& a, const Character& b);
+    /**
+     * Compares two characters and returns true if they have the same unicode character value,
+     * rendition and colors.
+     */
+    friend bool operator == (const Character& a, const Character& b);
+    /**
+     * Compares two characters and returns true if they have different unicode character values,
+     * renditions or colors.
+     */
+    friend bool operator != (const Character& a, const Character& b);
 };
 
-inline bool operator == (const Character& a, const Character& b)
-{
-  return a.character == b.character &&
-         a.rendition == b.rendition &&
-         a.foregroundColor == b.foregroundColor &&
-         a.backgroundColor == b.backgroundColor;
+inline bool operator == (const Character& a, const Character& b) {
+    return a.character == b.character &&
+           a.rendition == b.rendition &&
+           a.foregroundColor == b.foregroundColor &&
+           a.backgroundColor == b.backgroundColor;
 }
 
-inline bool operator != (const Character& a, const Character& b)
-{
-  return    a.character != b.character ||
-            a.rendition != b.rendition ||
-            a.foregroundColor != b.foregroundColor ||
-            a.backgroundColor != b.backgroundColor;
+inline bool operator != (const Character& a, const Character& b) {
+    return a.character != b.character ||
+           a.rendition != b.rendition ||
+           a.foregroundColor != b.foregroundColor ||
+           a.backgroundColor != b.backgroundColor;
 }
 
-inline bool Character::isTransparent(const ColorEntry* base) const
-{
-  return ((backgroundColor._colorSpace == COLOR_SPACE_DEFAULT) &&
-          base[backgroundColor._u+0+(backgroundColor._v?BASE_COLORS:0)].transparent)
-      || ((backgroundColor._colorSpace == COLOR_SPACE_SYSTEM) &&
-          base[backgroundColor._u+2+(backgroundColor._v?BASE_COLORS:0)].transparent);
+inline bool Character::isTransparent(const ColorEntry* base) const {
+    return ((backgroundColor._colorSpace == COLOR_SPACE_DEFAULT) &&
+             base[backgroundColor._u+0+(backgroundColor._v?BASE_COLORS:0)].transparent)
+        || ((backgroundColor._colorSpace == COLOR_SPACE_SYSTEM) &&
+             base[backgroundColor._u+2+(backgroundColor._v?BASE_COLORS:0)].transparent);
 }
 
-inline bool Character::equalsFormat(const Character& other) const
-{
-  return
-    backgroundColor==other.backgroundColor &&
-    foregroundColor==other.foregroundColor &&
-    rendition==other.rendition;
+inline bool Character::equalsFormat(const Character& other) const {
+    return backgroundColor==other.backgroundColor &&
+           foregroundColor==other.foregroundColor &&
+           rendition==other.rendition;
 }
 
-inline ColorEntry::FontWeight Character::fontWeight(const ColorEntry* base) const
-{
+inline ColorEntry::FontWeight Character::fontWeight(const ColorEntry* base) const {
     if (backgroundColor._colorSpace == COLOR_SPACE_DEFAULT)
         return base[backgroundColor._u+0+(backgroundColor._v?BASE_COLORS:0)].fontWeight;
     else if (backgroundColor._colorSpace == COLOR_SPACE_SYSTEM)
@@ -161,9 +158,6 @@ inline ColorEntry::FontWeight Character::fontWeight(const ColorEntry* base) cons
     else
         return ColorEntry::UseCurrentFormat;
 }
-
-extern unsigned short vt100_graphics[32];
-
 
 /**
  * A table which stores sequences of unicode characters, referenced
