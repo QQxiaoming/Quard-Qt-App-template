@@ -19,7 +19,6 @@
  02110-1301  USA.
 */
 #include "ColorScheme.h"
-#include "tools.h"
 
 #include <QBrush>
 #include <QDir>
@@ -503,10 +502,6 @@ bool ColorSchemeManager::loadCustomColorScheme(const QString &path) {
     return false;
 }
 
-void ColorSchemeManager::addCustomColorSchemeDir(const QString &custom_dir) {
-    add_custom_color_scheme_dir(custom_dir);
-}
-
 bool ColorSchemeManager::loadColorScheme(const QString &filePath) {
     if (!filePath.endsWith(QLatin1String(".colorscheme")) ||
         !QFile::exists(filePath))
@@ -534,6 +529,12 @@ bool ColorSchemeManager::loadColorScheme(const QString &filePath) {
     return true;
 }
 
+const QStringList ColorSchemeManager::get_color_schemes_dirs() {
+    QStringList list;
+    list.append(":/lib/qtermwidget/color-schemes/");
+    return list;
+}
+
 QList<QString> ColorSchemeManager::listColorSchemes() {
     QList<QString> ret;
     for (const QString &scheme_dir : get_color_schemes_dirs()) {
@@ -547,9 +548,6 @@ QList<QString> ColorSchemeManager::listColorSchemes() {
             ret << dname + QLatin1Char('/') + i;
     }
     return ret;
-    //return KGlobal::dirs()->findAllResources("data",
-    //                                         "konsole/*.colorscheme",
-    //                                          KStandardDirs::NoDuplicates);
 }
 
 const ColorScheme ColorSchemeManager::_defaultColorScheme;
@@ -571,7 +569,7 @@ bool ColorSchemeManager::deleteColorScheme(const QString &name) {
 }
 
 QString ColorSchemeManager::findColorSchemePath(const QString &name) const {
-    const QStringList dirs = get_color_schemes_dirs();
+    QStringList dirs = get_color_schemes_dirs();
     if (dirs.isEmpty())
         return QString();
 

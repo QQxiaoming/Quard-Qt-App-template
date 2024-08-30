@@ -3179,7 +3179,7 @@ void TerminalDisplay::setBellMode(int mode) { _bellMode = mode; }
 
 void TerminalDisplay::enableBell() { _allowBell = true; }
 
-void TerminalDisplay::bell(const QString &message) {
+void TerminalDisplay::bell() {
     if (_bellMode == NoBell)
         return;
 
@@ -3193,7 +3193,7 @@ void TerminalDisplay::bell(const QString &message) {
         if (_bellMode == SystemBeepBell) {
             QApplication::beep();
         } else if (_bellMode == NotifyBell) {
-            emit notifyBell(message);
+            emit notifyBell();
         } else if (_bellMode == VisualBell) {
             swapColorTable();
             QTimer::singleShot(200, this, &TerminalDisplay::swapColorTable);

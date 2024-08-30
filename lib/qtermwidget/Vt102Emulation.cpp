@@ -20,7 +20,6 @@
  02110-1301  USA.
 */
 #include "Vt102Emulation.h"
-#include "tools.h"
 #include <cstdio>
 #include <string>
 
@@ -2035,10 +2034,7 @@ char Vt102Emulation::eraseChar() const {
 }
 
 void Vt102Emulation::reportDecodingError() {
-    if (tokenBufferPos == 0 ||
-            (tokenBufferPos == 1 && (tokenBuffer[0] & 0xff) >= 32))
+    if (tokenBufferPos == 0 || (tokenBufferPos == 1 && (tokenBuffer[0] & 0xff) >= 32))
         return;
-    qCDebug(qtermwidgetLogger)
-            << "Undecodable sequence:"
-            << QString::fromWCharArray(tokenBuffer, tokenBufferPos);
+    qDebug()<< "Undecodable sequence:" << QString::fromWCharArray(tokenBuffer, tokenBufferPos);
 }

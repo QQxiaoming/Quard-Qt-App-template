@@ -23,7 +23,7 @@
 #include <QMessageBox>
 #include <QRegularExpression>
 
-#include "ColorTables.h"
+#include "CharacterColor.h"
 #include "Screen.h"
 #include "ScreenWindow.h"
 #include "Emulation.h"
@@ -34,14 +34,6 @@
 #include "SearchBar.h"
 #include "qtermwidget.h"
 
-#ifdef Q_OS_MACOS
-// Qt does not support fontconfig on macOS, so we need to use a "real" font name.
-#define DEFAULT_FONT_FAMILY                   "Menlo"
-#else
-#define DEFAULT_FONT_FAMILY                   "Monospace"
-#endif
-
-#define STEP_ZOOM 3
 
 QTermWidget::QTermWidget(QWidget *messageParentWidget, QWidget *parent)
     : QWidget(parent) {
@@ -69,7 +61,7 @@ QTermWidget::QTermWidget(QWidget *messageParentWidget, QWidget *parent)
     // allow emulation to notify view when the foreground process
     // indicates whether or not it is interested in mouse signals
     connect(m_emulation, &Emulation::programUsesMouseChanged, m_terminalDisplay, &TerminalDisplay::setUsesMouse);
-    m_terminalDisplay->setUsesMouse(m_emulation->programUsesMouse() );
+    m_terminalDisplay->setUsesMouse(m_emulation->programUsesMouse());
     connect(m_emulation, &Emulation::programBracketedPasteModeChanged, m_terminalDisplay, &TerminalDisplay::setBracketedPasteMode);
     m_terminalDisplay->setBracketedPasteMode(m_emulation->programBracketedPasteMode());
     m_terminalDisplay->setScreenWindow(m_emulation->createWindow());
@@ -90,7 +82,7 @@ QTermWidget::QTermWidget(QWidget *messageParentWidget, QWidget *parent)
     m_terminalDisplay->setObjectName("terminalDisplay");
     setMessageParentWidget(messageParentWidget?messageParentWidget:this);
 
-    connect(m_terminalDisplay, &TerminalDisplay::notifyBell, this, &QTermWidget::bell);
+    connect(m_terminalDisplay, &TerminalDisplay::notifyBell, this, &QTermWidget::notifyBell);
     connect(m_terminalDisplay, &TerminalDisplay::handleCtrlC, this, &QTermWidget::handleCtrlC);
     connect(m_terminalDisplay, &TerminalDisplay::changedContentCountSignal, this, &QTermWidget::termSizeChange);
     connect(m_terminalDisplay, &TerminalDisplay::mousePressEventForwarded, this, &QTermWidget::mousePressEventForwarded);
@@ -142,15 +134,9 @@ QTermWidget::QTermWidget(QWidget *messageParentWidget, QWidget *parent)
             this, &QTermWidget::termGetFocus);
     connect(m_terminalDisplay, &TerminalDisplay::termLostFocus,
             this, &QTermWidget::termLostFocus);
-    connect(m_terminalDisplay, &TerminalDisplay::keyPressedSignal, this,
-            [this] (QKeyEvent* e, bool) { emit termKeyPressed(e); });
-
-    QFont font = QApplication::font();
-    font.setFamily(QLatin1String(DEFAULT_FONT_FAMILY));
-    font.setPointSize(10);
-    font.setStyleHint(QFont::TypeWriter);
-    setTerminalFont(font);
-    m_searchBar->setFont(font);
+    connect(m_terminalDisplay, &TerminalDisplay::keyPressedSignal, this, [this] (QKeyEvent* e, bool) { 
+        emit termKeyPressed(e); 
+    });
 
     setScrollBarPosition(NoScrollBar);
     setKeyboardCursorShape(Emulation::KeyboardCursorShape::BlockCursor);
@@ -308,10 +294,6 @@ QStringList QTermWidget::availableColorSchemes() {
     return ret;
 }
 
-void QTermWidget::addCustomColorSchemeDir(const QString& custom_dir) {
-    ColorSchemeManager::instance()->addCustomColorSchemeDir(custom_dir);
-}
-
 void QTermWidget::setBackgroundColor(const QColor &color) {
     m_terminalDisplay->setBackgroundColor(color);
 }
@@ -333,9 +315,7 @@ void QTermWidget::setSize(const QSize &size) {
 }
 
 void QTermWidget::setHistorySize(int lines) {
-    if (lines < 0)
-        m_emulation->setHistory(HistoryTypeFile());
-    else if (lines == 0)
+    if (lines <= 0)
         m_emulation->setHistory(HistoryTypeNone());
     else
         m_emulation->setHistory(HistoryTypeBuffer(lines));
@@ -425,14 +405,14 @@ void QTermWidget::monitorTimerDone() {
 
 void QTermWidget::activityStateSet(int state) {
     if (state==NOTIFYBELL) {
-        m_terminalDisplay->bell("Bell in QTermWidget!");
+        m_terminalDisplay->bell();
     } else if (state==NOTIFYACTIVITY) {
         if (m_monitorSilence) {
             m_monitorTimer->start(m_silenceSeconds*1000);
         }
 
         if ( m_monitorActivity ) {
-            //FIXME:  See comments in Session::monitorTimerDone()
+            //FIXME:  See comments in monitorTimerDone()
             if (!m_notifiedActivity) {
                 m_notifiedActivity=true;
                 emit activity();

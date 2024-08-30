@@ -528,7 +528,7 @@ public slots:
      * Shows a notification that a bell event has occurred in the terminal.
      * TODO: More documentation here
      */
-    void bell(const QString& message);
+    void bell();
 
     /**
      * Sets the background of the display to the specified color.
@@ -618,7 +618,7 @@ signals:
 	void termGetFocus();
 	void termLostFocus();
 
-    void notifyBell(const QString&);
+    void notifyBell();
     void usesMouseChanged();
 
     void handleCtrlC(void);

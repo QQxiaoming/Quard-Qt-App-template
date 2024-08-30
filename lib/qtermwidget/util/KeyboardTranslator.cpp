@@ -32,8 +32,6 @@
 #include <QTextStream>
 #include <QtDebug>
 
-#include "tools.h"
-
 const QByteArray KeyboardTranslatorManager::defaultTranslatorText(
     "keyboard \"Fallback Key Translator\"\n"
     "key Tab : \"\\t\""
@@ -54,14 +52,18 @@ KeyboardTranslatorManager::~KeyboardTranslatorManager() {
     qDeleteAll(_translators);
 }
 
+QString KeyboardTranslatorManager::get_kb_layout_dir() {
+    return QString(":/lib/qtermwidget/kb-layouts/");
+}
+
 QString KeyboardTranslatorManager::findTranslatorPath(const QString &name) {
-    return QString(get_kb_layout_dir() + name + QLatin1String(".keytab"));
+    return QString(get_kb_layout_dir() + name + QString(".keytab"));
 }
 
 void KeyboardTranslatorManager::findTranslators() {
     QDir dir(get_kb_layout_dir());
     QStringList filters;
-    filters << QLatin1String("*.keytab");
+    filters << QString("*.keytab");
     dir.setNameFilters(filters);
     QStringList list = dir.entryList(filters);
 

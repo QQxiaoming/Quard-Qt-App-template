@@ -274,16 +274,10 @@ public:
      */
     bool loadCustomColorScheme(const QString& path);
 
-    /**
-     * @brief Allows to add a custom location of color schemes.
-     *
-     * @param[in] custom_dir Custom location of color schemes (must end with /).
-     */
-    void addCustomColorSchemeDir(const QString& custom_dir);
-
 private:
     // loads a color scheme from a KDE 4+ .colorscheme file
     bool loadColorScheme(const QString& path);
+    const static QStringList get_color_schemes_dirs();
     // returns a list of paths of color schemes in the KDE 4+ .colorscheme file format
     QList<QString> listColorSchemes();
     // loads all of the color schemes

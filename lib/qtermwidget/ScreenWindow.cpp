@@ -40,7 +40,7 @@ Screen *ScreenWindow::screen() const {
 }
 
 Character *ScreenWindow::getImage() {
-  // reallocate internal buffer if the window size has changed
+    // reallocate internal buffer if the window size has changed
     int size = windowLines() * windowColumns();
     if (_windowBuffer == nullptr || _windowBufferSize != size) {
         delete[] _windowBuffer;

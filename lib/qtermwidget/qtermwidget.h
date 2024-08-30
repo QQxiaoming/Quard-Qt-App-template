@@ -101,7 +101,6 @@ public:
      */
     QStringList getAvailableColorSchemes();
     static QStringList availableColorSchemes();
-    static void addCustomColorSchemeDir(const QString& custom_dir);
 
     void setBackgroundColor(const QColor &color);
     void setForegroundColor(const QColor &color);
@@ -273,7 +272,7 @@ signals:
     void termLostFocus();
     void termKeyPressed(QKeyEvent *);
     void urlActivated(const QUrl&, uint32_t opcode);
-    void bell(const QString& message);
+    void notifyBell();
     void activity();
     void silence();
     /**
@@ -387,6 +386,8 @@ private:
     bool m_notifiedActivity = false;
     QTimer* m_monitorTimer = nullptr;
     int m_silenceSeconds = 10;
+
+    const static int STEP_ZOOM = 3;
 };
 
 #endif

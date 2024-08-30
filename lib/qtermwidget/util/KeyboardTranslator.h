@@ -496,7 +496,8 @@ public:
 
 private:
     static const QByteArray defaultTranslatorText;
-
+    
+    QString get_kb_layout_dir();
     void findTranslators(); // locate the available translators
     KeyboardTranslator* loadTranslator(const QString& name); // loads the translator
                                                              // with the given name
