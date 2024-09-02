@@ -1,0 +1,67 @@
+name: windows_mingw
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'doc/**'
+      - 'docs/**'
+      - 'README.md'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE/**'
+    tags:
+      - V**
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - 'doc/**'
+      - 'docs/**'
+      - 'README.md'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE/**'
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-2022
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          arch: win64_mingw
+          version: '6.5.3'
+          modules: 'qtmultimedia'
+          aqtversion: ==3.1.7
+
+      - name: Install cmake
+        uses: crazy-max/ghaction-chocolatey@v3
+        with:
+          args: install cmake --no-progress
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: mingw64
+
+      #- name: Build winpty
+      #  shell: msys2 {0}
+      #  run: |
+      #    pacman --noconfirm -S make gcc
+      #    cd depend
+      #    export PATH=/c/ProgramData/Chocolatey/lib/mingw/tools/install/mingw64/bin:$PATH
+      #    ./build_winpty_ms.sh
+
+      - name: Install winpty
+        run: |
+          cd D:/
+          curl -L https://github.com/rprichard/winpty/releases/download/0.4.3/winpty-0.4.3-msys2-2.7.0-x64.tar.gz -o winpty-0.4.3-msys2-2.7.0-x64.tar.gz
+          tar -xvf winpty-0.4.3-msys2-2.7.0-x64.tar.gz
+          mv winpty-0.4.3-msys2-2.7.0-x64 winpty
+
+      - name: Build all
+        run: |
+          ./tools/sed/sed.exe -i "s/WINPTY_DIR=D:\\depend\\winpty/WINPTY_DIR=D:\\winpty/g" ./lib/ptyqt/ptyqt.pri
+          qmake template.pro -spec win32-g++
+          mingw32-make

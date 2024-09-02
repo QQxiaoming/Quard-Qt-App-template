@@ -13,7 +13,7 @@ win32:{
         HEADERS += $$PWD/winptyprocess.h
         SOURCES += $$PWD/winptyprocess.cpp
 
-        WINPTY_DIR=D:\quardCRT\depend\winpty
+        WINPTY_DIR=D:\depend\winpty
         INCLUDEPATH += $${WINPTY_DIR}\include\winpty
         LIBS += $${WINPTY_DIR}\lib\winpty.lib
     }

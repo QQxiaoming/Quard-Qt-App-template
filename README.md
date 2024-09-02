@@ -1,3 +1,9 @@
+[![Windows MingW ci](https://img.shields.io/github/actions/workflow/status/QQxiaoming/Quard-Qt-App-template/windows_mingw.yml?branch=main&logo=data:image/svg+xml;base64,PHN2ZyByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGl0bGU+V2luZG93czwvdGl0bGU+PHBhdGggZD0iTTAsMEgxMS4zNzdWMTEuMzcySDBaTTEyLjYyMywwSDI0VjExLjM3MkgxMi42MjNaTTAsMTIuNjIzSDExLjM3N1YyNEgwWm0xMi42MjMsMEgyNFYyNEgxMi42MjMiIGZpbGw9IiNmZmZmZmYiLz48L3N2Zz4=)](https://github.com/QQxiaoming/Quard-Qt-App-template/actions/workflows/windows_mingw.yml)
+[![Windows MSVC ci](https://img.shields.io/github/actions/workflow/status/QQxiaoming/Quard-Qt-App-template/windows_msvc.yml?branch=main&logo=data:image/svg+xml;base64,PHN2ZyByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGl0bGU+V2luZG93czwvdGl0bGU+PHBhdGggZD0iTTAsMEgxMS4zNzdWMTEuMzcySDBaTTEyLjYyMywwSDI0VjExLjM3MkgxMi42MjNaTTAsMTIuNjIzSDExLjM3N1YyNEgwWm0xMi42MjMsMEgyNFYyNEgxMi42MjMiIGZpbGw9IiNmZmZmZmYiLz48L3N2Zz4=)](https://github.com/QQxiaoming/Quard-Qt-App-template/actions/workflows/windows_msvc.yml)
+[![Linux ci](https://img.shields.io/github/actions/workflow/status/QQxiaoming/Quard-Qt-App-template/linux.yml?branch=main&logo=linux&logoColor=white)](https://github.com/QQxiaoming/Quard-Qt-App-template/actions/workflows/linux.yml)
+[![Macos ci](https://img.shields.io/github/actions/workflow/status/QQxiaoming/Quard-Qt-App-template/macos.yml?branch=main&logo=apple)](https://github.com/QQxiaoming/Quard-Qt-App-template/actions/workflows/macos.yml)
+[![Macos arm64 ci](https://img.shields.io/github/actions/workflow/status/QQxiaoming/Quard-Qt-App-template/macos_arm64.yml?branch=main&logo=apple)](https://github.com/QQxiaoming/Quard-Qt-App-template/actions/workflows/macos_arm64.yml)
+
 # Quard的Qt应用程序初始模板
 
 本模板是为了方便Quard（本项目作者）创建新的Qt应用程序项目而设计的。它包含了基本的无边框窗口、左侧边页、主页面、底部终端、右侧通知中心，亮/暗色主题切换，顶部与标题栏结合的菜单栏等基本功能。本模板支持跨平台，可以在Windows、Linux、MacOS等系统上运行。需要Qt 6.5.0及以上版本。
