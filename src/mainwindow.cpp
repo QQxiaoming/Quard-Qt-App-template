@@ -192,6 +192,8 @@ CentralWidget::CentralWidget(bool isDark, QWidget *parent)
                 term->repaintDisplay();
             }
         });
+    #else
+        Q_UNUSED(mainWindow);
     #endif
     });
 }
