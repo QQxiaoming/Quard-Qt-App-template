@@ -657,7 +657,7 @@ void QGoodWindow::setup()
 #endif
 
 #ifdef Q_OS_LINUX
-    qputenv("XDG_SESSION_TYPE", "xcb");
+    qputenv("XDG_SESSION_TYPE", "x11");
     qputenv("QT_QPA_PLATFORM", "xcb");
 
     int argc = 0;
@@ -1915,7 +1915,7 @@ bool QGoodWindow::event(QEvent *event)
         if (FIXED_SIZE(this))
             break;
 
-        activateWindow();
+        //activateWindow();
 
         if (!windowState().testFlag(Qt::WindowNoState))
             break;
