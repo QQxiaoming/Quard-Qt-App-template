@@ -19,8 +19,6 @@
   ProcThreadAttributeValue(22, FALSE, TRUE, FALSE)
 
 typedef VOID* HPCON;
-
-#define TOO_OLD_WINSDK
 #endif
 
 class QWinEventNotifier;
@@ -78,6 +76,7 @@ public:
 private:
     HRESULT createPseudoConsoleAndPipes(HPCON* phPC, HANDLE* phPipeIn, HANDLE* phPipeOut, qint16 cols, qint16 rows, bool resize_quirk);
     HRESULT initializeStartupInfoAttachedToPseudoConsole(STARTUPINFOEX* pStartupInfo, HPCON hPC);
+    void cleanupStartupInfo() noexcept;
 
 private:
     HPCON m_ptyHandler{INVALID_HANDLE_VALUE};
@@ -91,6 +90,7 @@ private:
     PROCESS_INFORMATION m_shellProcessInformation{};
     QWinEventNotifier *m_shellCloseWaitNotifier{nullptr};
     STARTUPINFOEX m_shellStartupInfo{};
+    bool m_shellStartupInfoInitialized{false};
 };
 
 #endif // CONPTYPROCESS_H

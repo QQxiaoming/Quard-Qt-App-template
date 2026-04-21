@@ -35,6 +35,8 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QScrollBar>
+#include <QString>
 
 #include "Filter.h"
 #include "Character.h"
@@ -50,7 +52,6 @@ class QTimer;
 class QEvent;
 class QGridLayout;
 class QKeyEvent;
-class QScrollBar;
 class QShowEvent;
 class QHideEvent;
 class QTimerEvent;
@@ -76,6 +77,7 @@ enum BackgroundMode {
 };
 
 class ScreenWindow;
+class ScrollBar;
 
 /**
  * A widget which displays output from a terminal emulation and sends input keypresses and mouse activity
@@ -433,6 +435,15 @@ public:
     void setPreeditColorIndex(int index) {
         _preeditColorIndex = index;
     }
+
+    int mouseAutohideDelay() const { return _mouseAutohideDelay; }
+
+    /**
+    * hide the mouse cursor after @param delay milliseconds of inactivity
+    * @param delay < 0 deactivates the behavior
+    */
+    void autoHideMouseAfter(int delay);
+
 public slots:
 
     /**
@@ -633,6 +644,8 @@ protected:
     virtual void fontChange(const QFont &font);
     void focusInEvent(QFocusEvent* event) override;
     void focusOutEvent(QFocusEvent* event) override;
+    void enterEvent(QEnterEvent* event) override;
+    void leaveEvent(QEvent* event) override;
     void keyPressEvent(QKeyEvent* event) override;
     void mouseDoubleClickEvent(QMouseEvent* ev) override;
     void mousePressEvent( QMouseEvent* ) override;
@@ -661,7 +674,7 @@ protected:
     //     - A space (returns ' ')
     //     - Part of a word (returns 'a')
     //     - Other characters (returns the input character)
-    QChar charClass(QChar ch) const;
+    QChar charClass(const Character &ch) const;
 
     void clearImage();
 
@@ -701,7 +714,7 @@ private:
     // draws a section of text, all the text in this section
     // has a common color and style
     void drawTextFragment(QPainter& painter, const QRect& rect,
-                          const std::wstring& text, Character* style,bool isSelection);
+                          const std::wstring& text, Character* style, bool tooWide, bool isSelection);
     // draws the background for a text fragment
     // if useOpacitySetting is true then the color's alpha value will be set to
     // the display's transparency (set with setOpacity()), otherwise the background
@@ -714,7 +727,8 @@ private:
                                        bool preedit = false);
     // draws the characters or line graphics in a text fragment
     void drawCharacters(QPainter& painter, const QRect& rect,  const std::wstring& text,
-                                           const Character* style, bool invertCharacterColor);
+                                           const Character* style, bool invertCharacterColor,
+                                           bool tooWide = false);
     // draws a string of line graphics
     void drawLineCharString(QPainter& painter, int x, int y,
                             const std::wstring& str, const Character* attributes) const;
@@ -768,8 +782,10 @@ private:
 
     bool handleShortcutOverrideEvent(QKeyEvent* event);
 
-    bool isLineChar(wchar_t c) const;
+    bool isLineChar(Character c) const;
     bool isLineCharString(const std::wstring& string) const;
+
+    void hideStaleMouse() const; // conditionally hides the mouse cursor
 
     // the window onto the terminal screen which this display
     // is currently showing.
@@ -781,6 +797,7 @@ private:
 
     CharWidth *_charWidth;
     bool _fixedFont; // has fixed pitch
+    bool _fixedFont_original; // used only in textWidth()
     int  _fontHeight;     // height
     int  _fontWidth;     // width
     int  _fontAscent;     // ascend
@@ -832,7 +849,7 @@ private:
     bool    _columnSelectionMode;
 
     QClipboard*  _clipboard;
-    QScrollBar* _scrollBar;
+    ScrollBar* _scrollBar;
     QTermWidget::ScrollBarPosition _scrollbarLocation;
     QString     _wordCharacters;
     int         _bellMode;
@@ -847,6 +864,7 @@ private:
     bool _isFixedSize; //Columns / lines are locked.
     QTimer* _blinkTimer;  // active when hasBlinker
     QTimer* _blinkCursorTimer;  // active when hasBlinkingCursor
+    static std::shared_ptr<QTimer> _hideMouseTimer;
 
     //QMenu* _drop;
     QString _dropText;
@@ -918,6 +936,8 @@ private:
 
     bool _drawLineChars;
 
+    int _mouseAutohideDelay;
+
     int _preeditColorIndex = 16; //Color4Intense
 
     int shiftSelectionStartX = -1;
@@ -939,6 +959,16 @@ protected:
 private:
     QWidget* widget() const { return static_cast<QWidget*>(parent()); }
     int _timerId;
+};
+
+class ScrollBar : public QScrollBar
+{
+Q_OBJECT
+
+public:
+    ScrollBar(QWidget* parent = nullptr);
+protected:
+    void enterEvent(QEnterEvent* event) override;
 };
 
 class MultilineConfirmationMessageBox : public QDialog {

@@ -574,33 +574,10 @@ void _ClosePseudoConsoleMembers(_In_ PseudoConsole* pPty)
 {
     if (pPty != nullptr)
     {
-        // See MSFT:19918626
-        // First break the signal pipe - this will trigger conhost to tear itself down
         if (_HandleIsValid(pPty->hSignal))
         {
             CloseHandle(pPty->hSignal);
             pPty->hSignal = nullptr;
-        }
-        // Then, wait on the conhost process before killing it.
-        // We do this to make sure the conhost finishes flushing any output it
-        //      has yet to send before we hard kill it.
-        if (_HandleIsValid(pPty->hConPtyProcess))
-        {
-            // If the conhost is already dead, then that's fine. Presumably
-            //      it's finished flushing it's output already.
-            DWORD dwExit = 0;
-            // If GetExitCodeProcess failed, it's likely conhost is already dead
-            //      If so, skip waiting regardless of whatever error
-            //      GetExitCodeProcess returned.
-            //      We'll just go straight to killing conhost.
-            if (GetExitCodeProcess(pPty->hConPtyProcess, &dwExit) && dwExit == STILL_ACTIVE)
-            {
-                WaitForSingleObject(pPty->hConPtyProcess, INFINITE);
-            }
-
-            TerminateProcess(pPty->hConPtyProcess, 0);
-            CloseHandle(pPty->hConPtyProcess);
-            pPty->hConPtyProcess = nullptr;
         }
         // Then take care of the reference handle.
         // TODO GH#1810: Closing the reference handle late leaves conhost thinking
@@ -609,6 +586,11 @@ void _ClosePseudoConsoleMembers(_In_ PseudoConsole* pPty)
         {
             CloseHandle(pPty->hPtyReference);
             pPty->hPtyReference = nullptr;
+        }
+        if (_HandleIsValid(pPty->hConPtyProcess))
+        {
+            CloseHandle(pPty->hConPtyProcess);
+            pPty->hConPtyProcess = nullptr;
         }
     }
 }
@@ -855,6 +837,8 @@ HRESULT ConPtyProcess::initializeStartupInfoAttachedToPseudoConsole(STARTUPINFOE
 
     if (pStartupInfo)
     {
+        cleanupStartupInfo();
+
         SIZE_T attrListSize{};
 
         pStartupInfo->StartupInfo.hStdInput = m_hPipeIn;
@@ -875,6 +859,8 @@ HRESULT ConPtyProcess::initializeStartupInfoAttachedToPseudoConsole(STARTUPINFOE
         if (pStartupInfo->lpAttributeList
                 && InitializeProcThreadAttributeList(pStartupInfo->lpAttributeList, 1, 0, &attrListSize))
         {
+            m_shellStartupInfoInitialized = true;
+
             // Set Pseudo Console attribute
             hr = UpdateProcThreadAttribute(
                         pStartupInfo->lpAttributeList,
@@ -886,13 +872,33 @@ HRESULT ConPtyProcess::initializeStartupInfoAttachedToPseudoConsole(STARTUPINFOE
                         NULL)
                     ? S_OK
                     : HRESULT_FROM_WIN32(GetLastError());
+
+            if (hr != S_OK) {
+                cleanupStartupInfo();
+            }
         }
         else
         {
             hr = HRESULT_FROM_WIN32(GetLastError());
+            cleanupStartupInfo();
         }
     }
     return hr;
+}
+
+void ConPtyProcess::cleanupStartupInfo() noexcept
+{
+    if (m_shellStartupInfo.lpAttributeList) {
+        if (m_shellStartupInfoInitialized) {
+            DeleteProcThreadAttributeList(m_shellStartupInfo.lpAttributeList);
+            m_shellStartupInfoInitialized = false;
+        }
+
+        HeapFree(GetProcessHeap(), 0, m_shellStartupInfo.lpAttributeList);
+        m_shellStartupInfo.lpAttributeList = nullptr;
+    }
+
+    m_shellStartupInfo = {};
 }
 
 Q_DECLARE_METATYPE(HANDLE)
@@ -938,6 +944,7 @@ bool ConPtyProcess::startProcess(const QString &executable,
     m_shellPath = executable;
     m_shellPath.replace('/', '\\');
     m_size = QPair<qint16, qint16>(cols, rows);
+    m_aboutToDestruct = false;
 
     //env
     const QString env = environment.join(QChar(QChar::Null)) + QChar(QChar::Null);
@@ -962,6 +969,7 @@ bool ConPtyProcess::startProcess(const QString &executable,
     // Initialize the necessary startup info struct
     if (S_OK != initializeStartupInfoAttachedToPseudoConsole(&m_shellStartupInfo, m_ptyHandler)) {
         m_lastError = QString("ConPty Error: InitializeStartupInfoAttachedToPseudoConsole fail");
+        kill();
         return false;
     }
 
@@ -980,6 +988,7 @@ bool ConPtyProcess::startProcess(const QString &executable,
 
     if (S_OK != hr) {
         m_lastError = QString("ConPty Error: Cannot create process -> %1").arg(hr);
+        kill();
         return false;
     }
 
@@ -995,8 +1004,11 @@ bool ConPtyProcess::startProcess(const QString &executable,
                          GetExitCodeProcess(hEvent, &exitCode);
                          m_exitCode = exitCode;
                          // Do not respawn if the object is about to be destructed
-                         if (!m_aboutToDestruct)
-                             emit notifier()->aboutToClose();
+                         if (!m_aboutToDestruct) {
+                            ConptyClosePseudoConsole(m_ptyHandler);
+                            m_ptyHandler = INVALID_HANDLE_VALUE;
+                            emit notifier() -> aboutToClose();
+                         }
                          m_shellCloseWaitNotifier->setEnabled(false);
                      }, Qt::QueuedConnection);
 
@@ -1054,49 +1066,51 @@ bool ConPtyProcess::resize(qint16 cols, qint16 rows)
 
 bool ConPtyProcess::kill()
 {
-    bool exitCode = false;
-
     if (m_ptyHandler != INVALID_HANDLE_VALUE) {
         m_aboutToDestruct = true;
 
         // Close ConPTY - this will terminate client process if running
         WindowsContext::instance().closePseudoConsole(m_ptyHandler);
-
-        // Clean-up the pipes
-        if (INVALID_HANDLE_VALUE != m_hPipeOut)
-            CloseHandle(m_hPipeOut);
-        if (INVALID_HANDLE_VALUE != m_hPipeIn)
-            CloseHandle(m_hPipeIn);
-
-        if (m_readThread) {
-            m_readThread->requestInterruption();
-            if (!m_readThread->wait(1000))
-                m_readThread->terminate();
-            m_readThread->deleteLater();
-            m_readThread = nullptr;
-        }
-
-        delete m_shellCloseWaitNotifier;
-        m_shellCloseWaitNotifier = nullptr;
-
-        m_pid = 0;
-        m_ptyHandler = INVALID_HANDLE_VALUE;
-        m_hPipeIn = INVALID_HANDLE_VALUE;
-        m_hPipeOut = INVALID_HANDLE_VALUE;
-
-        CloseHandle(m_shellProcessInformation.hThread);
-        CloseHandle(m_shellProcessInformation.hProcess);
-
-        // Cleanup attribute list
-        if (m_shellStartupInfo.lpAttributeList) {
-            DeleteProcThreadAttributeList(m_shellStartupInfo.lpAttributeList);
-            HeapFree(GetProcessHeap(), 0, m_shellStartupInfo.lpAttributeList);
-        }
-
-        exitCode = true;
     }
 
-    return exitCode;
+    // Clean-up the pipes
+    if (INVALID_HANDLE_VALUE != m_hPipeOut) {
+        CloseHandle(m_hPipeOut);
+        m_hPipeOut = INVALID_HANDLE_VALUE;
+    }
+    if (INVALID_HANDLE_VALUE != m_hPipeIn) {
+        CloseHandle(m_hPipeIn);
+        m_hPipeIn = INVALID_HANDLE_VALUE;
+    }
+
+    if (m_readThread) {
+        m_readThread->requestInterruption();
+        if (!m_readThread->wait(1000))
+            m_readThread->terminate();
+        m_readThread->deleteLater();
+        m_readThread = nullptr;
+    }
+
+    delete m_shellCloseWaitNotifier;
+    m_shellCloseWaitNotifier = nullptr;
+
+    m_pid = 0;
+    m_ptyHandler = INVALID_HANDLE_VALUE;
+
+    if (m_shellProcessInformation.hThread) {
+        CloseHandle(m_shellProcessInformation.hThread);
+        m_shellProcessInformation.hThread = nullptr;
+    }
+    if (m_shellProcessInformation.hProcess) {
+        CloseHandle(m_shellProcessInformation.hProcess);
+        m_shellProcessInformation.hProcess = nullptr;
+    }
+    m_shellProcessInformation.dwThreadId = 0;
+    m_shellProcessInformation.dwProcessId = 0;
+
+    cleanupStartupInfo();
+
+    return true;
 }
 
 IPtyProcess::PtyType ConPtyProcess::type()
@@ -1208,10 +1222,6 @@ ConPtyProcess::pidTree_t ConPtyProcess::processInfoTree()
 
 bool ConPtyProcess::isAvailable()
 {
-#ifdef TOO_OLD_WINSDK
-    return false; //very importnant! ConPty can be built, but it doesn't work if built with old sdk and Win10 < 1903
-#endif
-
     qint32 buildNumber = QSysInfo::kernelVersion().split(".").last().toInt();
     if (buildNumber < CONPTY_MINIMAL_WINDOWS_VERSION)
         return false;
